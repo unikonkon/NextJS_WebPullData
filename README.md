@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Web Scraper
+
+A web application built with Next.js that allows users to extract HTML content and specific data from websites using Puppeteer.
+
+## Features
+
+- Fetch complete HTML content from any URL
+- Extract specific elements using CSS selectors
+- User-friendly interface for configuring scraping tasks
+- API endpoint for programmatic access
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18.14.2 or higher
+- npm
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000/home](http://localhost:3000/home) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Web Interface
 
-## Learn More
+1. Navigate to the home page
+2. Enter the URL you want to scrape
+3. Choose between full HTML extraction or specific elements:
+   - For full HTML: simply enter the URL and click "Scrape Website"
+   - For specific elements: check the "Extract specific elements" option, add CSS selectors with descriptive names, and click "Scrape Website"
 
-To learn more about Next.js, take a look at the following resources:
+### API Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+You can also use the scraper programmatically via the API endpoint:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```javascript
+// Example: Fetch full HTML
+const response = await fetch('/api/scrape', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    url: 'https://example.com'
+  }),
+});
 
-## Deploy on Vercel
+const data = await response.json();
+console.log(data.html); // Contains the full HTML
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+// Example: Extract specific elements
+const response = await fetch('/api/scrape', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    url: 'https://example.com',
+    selectors: {
+      title: 'h1',
+      description: 'meta[name="description"]',
+      links: 'a.important-link'
+    }
+  }),
+});
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+const data = await response.json();
+console.log(data.data); // Contains the extracted elements
+```
+
+## Important Notes
+
+- Web scraping should be done responsibly and in accordance with the target website's terms of service
+- Some websites may block automated scraping attempts
+- This tool is intended for educational and personal use only
