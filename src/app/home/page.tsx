@@ -1,11 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+
+// Define a proper response type instead of using 'any'
+interface ScrapeResponse {
+  html?: string;
+  styles?: string[];
+  data?: Record<string, string | null>;
+}
 
 export default function Home() {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<ScrapeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [extractMode, setExtractMode] = useState(false);
   const [selectors, setSelectors] = useState<{ [key: string]: string }>({});
@@ -230,7 +237,7 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="bg-gray-50 border rounded p-4 overflow-auto max-h-96">
+              <div className="bg-gray-50 border rounded p-4 overflow-auto h-screen">
                 {viewMode === 'raw' ? (
                   <div className="bg-white p-3 rounded border overflow-auto">
                     <pre className="text-xs">{response.html}</pre>
@@ -244,7 +251,7 @@ export default function Home() {
                     <iframe 
                       sandbox="allow-same-origin"
                       srcDoc={styledHtml || response.html}
-                      className="w-full h-[600px] border-0"
+                      className="w-full h-screen border-0"
                       title="Scraped Content Preview"
                     />
                   </div>
