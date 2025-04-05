@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer';
  * @param url The URL to scrape
  * @returns The HTML content as a string
  */
-export async function fetchHtmlContent(url: string): Promise<{ html: string; styles: string[] }> {
+export async function fetchHtmlContent(url: string): Promise<{ html: string; styles: string[]; imageUrls: string[] }> {
   // Launch a new browser instance
   const browser = await puppeteer.launch({
     headless: true, // Use headless mode
@@ -34,6 +34,30 @@ export async function fetchHtmlContent(url: string): Promise<{ html: string; sty
       return { externalStyles, inlineStyles };
     });
     
+    // Extract all image URLs from the page
+    const imageUrls = await page.evaluate(() => {
+      const images = Array.from(document.querySelectorAll('img'));
+      return images.map(img => {
+        const src = img.getAttribute('src') || '';
+        const srcset = img.getAttribute('srcset') || '';
+        const dataSrc = img.getAttribute('data-src') || '';
+        const dataLazySrc = img.getAttribute('data-lazy-src') || '';
+        
+        // Return all possible image sources
+        return {
+          src,
+          srcset,
+          dataSrc,
+          dataLazySrc,
+          width: img.width,
+          height: img.height,
+          alt: img.alt,
+          isRelative: src && !src.startsWith('http') && !src.startsWith('data:'),
+          isComplete: img.complete
+        };
+      });
+    });
+    
     // Fetch content of external stylesheets
     const externalStyleContents: string[] = [];
     for (const styleUrl of stylesheets.externalStyles) {
@@ -60,7 +84,11 @@ export async function fetchHtmlContent(url: string): Promise<{ html: string; sty
     // Combine all styles
     const allStyles = [...stylesheets.inlineStyles, ...externalStyleContents];
     
-    return { html: htmlContent, styles: allStyles };
+    return { 
+      html: htmlContent, 
+      styles: allStyles, 
+      imageUrls: imageUrls.map(img => typeof img === 'string' ? img : JSON.stringify(img))
+    };
   } catch (error) {
     console.error('Error while fetching HTML content:', error);
     throw error;
@@ -108,4 +136,5 @@ export async function extractDataFromUrl(
   } finally {
     await browser.close();
   }
-} 
+}
+
