@@ -14,13 +14,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<ScrapeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [extractMode, setExtractMode] = useState(false);
-  const [selectors, setSelectors] = useState<{ [key: string]: string }>({});
-  const [newSelector, setNewSelector] = useState({ name: '', selector: '' });
   const [viewMode, setViewMode] = useState<'raw' | 'rendered' | 'text'>('raw');
   const [styledHtml, setStyledHtml] = useState<string>('');
-
-
   const [plainText, setPlainText] = useState<string>('');
 
   const extractTextFromHtml = (html: string): string => {
@@ -47,9 +42,6 @@ export default function Home() {
     meta.setAttribute('http-equiv', 'Content-Type');
     meta.setAttribute('content', 'text/html; charset=utf-8');
     doc.head.appendChild(meta);
-
-    // Optional: You could return `doc.documentElement.outerHTML` if needed
-    // const content = '<meta charset="UTF-8">' + doc.documentElement.innerHTML;
 
     // Extract and clean text
     const text = doc.body.textContent || '';
@@ -93,7 +85,7 @@ export default function Home() {
       height = Math.min(Math.max(height, 10), 4000);
 
       // สร้างข้อความสำหรับแสดงบน placeholder
-      let text = originalSrc
+      const text = originalSrc
         ? `Image:+${width}x${height}+(${originalSrc.substring(0, 20)}${originalSrc.length > 20 ? '...' : ''})`
         : `Image:+${width}x${height}`;
 
@@ -204,102 +196,6 @@ export default function Home() {
     `;
   };
 
-  const extractTextFromReactCode = (html: string): string => {
-    // สร้าง DOM parser เพื่อแปลง HTML string เป็น DOM
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    // ลบ elements ที่ไม่ต้องการ
-    doc.querySelectorAll('script, style, meta, link').forEach(el => el.remove());
-
-    // สร้างผลลัพธ์ HTML
-    let result = '';
-
-    // ฟังก์ชันสำหรับดึงข้อความจาก element และสร้าง div
-    const extractTextAndCreateDiv = (element: Element) => {
-      // ตรวจสอบว่า element มีข้อความหรือไม่
-      const textContent = element.textContent?.trim();
-      if (textContent && textContent.length > 0) {
-        // สร้าง class ตาม tag name
-        const tagName = element.tagName.toLowerCase();
-        // สร้าง div แสดงข้อความพร้อมระบุ tag ที่มา
-        result += `<div class="extracted-text ${tagName}-text" style="margin-bottom: 10px; padding: 8px; border-left: 3px solid #007bff;">
-          <span style="font-size: 10px; color: #666; display: block; margin-bottom: 4px;">${tagName}</span>
-          <div style="font-size: 14px;">${textContent}</div>
-        </div>\n`;
-      }
-
-      // วนลูป element ลูกทั้งหมด
-      Array.from(element.children).forEach(child => {
-        // หากเป็น element ที่ต้องการข้ามไป
-        if (['script', 'style', 'meta', 'link', 'svg', 'path', 'img'].includes(child.tagName.toLowerCase())) {
-          return;
-        }
-        extractTextAndCreateDiv(child);
-      });
-    };
-
-    // เริ่มดึงข้อความจาก body
-    if (doc.body) {
-      // สร้างหัวข้อสำหรับผลลัพธ์
-      result = `<div style="font-family: sans-serif;">
-        <div style="background-color: #f0f0f0; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
-          <h2 style="margin: 0; color: #333;">ข้อความจากเว็บไซต์</h2>
-          <p style="margin: 5px 0 0; font-size: 12px; color: #666;">แสดงข้อความที่ดึงจาก HTML โดยแยกตาม element และแสดงเป็น div</p>
-        </div>`;
-
-      // เก็บ element ที่มีข้อความสำคัญโดยตรง
-      const importantElements = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, section, article, main, header, footer, aside, nav'));
-
-      // ถ้าไม่มี element สำคัญ ให้ดึงจาก body โดยตรง
-      if (importantElements.length === 0) {
-        extractTextAndCreateDiv(doc.body);
-      } else {
-        // วนลูปดึงข้อความจาก element สำคัญ
-        importantElements.forEach(element => {
-          // ตรวจสอบว่ามี element พ่อแม่อยู่ใน importantElements หรือไม่
-          // ถ้ามี ให้ข้ามไปเพื่อหลีกเลี่ยงการซ้ำซ้อน
-          let parent = element.parentElement;
-          let hasImportantParent = false;
-
-          while (parent) {
-            if (importantElements.includes(parent)) {
-              hasImportantParent = true;
-              break;
-            }
-            parent = parent.parentElement;
-          }
-
-          // ถ้าไม่มีพ่อแม่ที่สำคัญ จึงดึงข้อความออกมา
-          if (!hasImportantParent) {
-            extractTextAndCreateDiv(element);
-          }
-        });
-      }
-
-      // ปิด div หลัก
-      result += '</div>';
-    }
-
-    return result;
-  };
-
-  const handleAddSelector = () => {
-    if (newSelector.name && newSelector.selector) {
-      setSelectors({
-        ...selectors,
-        [newSelector.name]: newSelector.selector
-      });
-      setNewSelector({ name: '', selector: '' });
-    }
-  };
-
-  const handleRemoveSelector = (name: string) => {
-    const updatedSelectors = { ...selectors };
-    delete updatedSelectors[name];
-    setSelectors(updatedSelectors);
-  };
-
   const handleScrape = async () => {
     if (!url) {
       setError('Please enter a URL');
@@ -312,11 +208,7 @@ export default function Home() {
     setStyledHtml('');
 
     try {
-      const requestBody: { url: string; selectors?: Record<string, string> } = { url };
-
-      if (extractMode && Object.keys(selectors).length > 0) {
-        requestBody.selectors = selectors;
-      }
+      const requestBody = { url };
 
       const res = await fetch('/api/scrape', {
         method: 'POST',
@@ -347,7 +239,6 @@ export default function Home() {
     }
   };
 
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Web Data Scraper</h1>
@@ -363,71 +254,6 @@ export default function Home() {
           disabled={isLoading}
         />
       </div>
-
-      {/* <div className="mb-6">
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={extractMode}
-            onChange={() => setExtractMode(!extractMode)}
-            className="h-4 w-4"
-            disabled={isLoading}
-          />
-          <span>Extract specific elements using CSS selectors</span>
-        </label>
-      </div> */}
-      {/* 
-      {extractMode && (
-        <div className="mb-6 bg-gray-50 p-4 rounded">
-          <h3 className="font-medium mb-3">CSS Selectors</h3>
-
-          <div className="grid grid-cols-5 gap-3 mb-3">
-            <input
-              className="col-span-2 p-2 border rounded"
-              placeholder="Name (e.g. title)"
-              value={newSelector.name}
-              onChange={(e) => setNewSelector({ ...newSelector, name: e.target.value })}
-              disabled={isLoading}
-            />
-            <input
-              className="col-span-2 p-2 border rounded"
-              placeholder="CSS Selector (e.g. h1.title)"
-              value={newSelector.selector}
-              onChange={(e) => setNewSelector({ ...newSelector, selector: e.target.value })}
-              disabled={isLoading}
-            />
-            <button
-              onClick={handleAddSelector}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-              disabled={!newSelector.name || !newSelector.selector || isLoading}
-            >
-              Add
-            </button>
-          </div>
-
-          {Object.keys(selectors).length > 0 && (
-            <div className="bg-white border rounded p-3">
-              <h4 className="text-sm font-medium mb-2">Active selectors:</h4>
-              <ul className="space-y-2">
-                {Object.entries(selectors).map(([name, selector]) => (
-                  <li key={name} className="flex justify-between items-center text-sm">
-                    <span>
-                      <strong>{name}:</strong> {selector}
-                    </span>
-                    <button
-                      onClick={() => handleRemoveSelector(name)}
-                      className="text-red-500 hover:text-red-700"
-                      disabled={isLoading}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )} */}
 
       <button
         onClick={handleScrape}

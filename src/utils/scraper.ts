@@ -98,43 +98,4 @@ export async function fetchHtmlContent(url: string): Promise<{ html: string; sty
   }
 }
 
-/**
- * Extracts specific data from a URL using CSS selectors
- * @param url The URL to scrape
- * @param selectors An object with keys as data names and values as CSS selectors
- * @returns An object with the extracted data
- */
-export async function extractDataFromUrl(
-  url: string, 
-  selectors: Record<string, string>
-): Promise<Record<string, string | null>> {
-  const browser = await puppeteer.launch({
-    headless: true,
-  });
-
-  try {
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2' });
-    
-    const result: Record<string, string | null> = {};
-    
-    // Extract data based on provided selectors
-    for (const [key, selector] of Object.entries(selectors)) {
-      try {
-        const element = await page.$(selector);
-        result[key] = element ? await page.evaluate(el => el.textContent, element) : null;
-      } catch (error) {
-        console.error(`Error extracting ${key} with selector ${selector}:`, error);
-        result[key] = null;
-      }
-    }
-    
-    return result;
-  } catch (error) {
-    console.error('Error while extracting data:', error);
-    throw error;
-  } finally {
-    await browser.close();
-  }
-}
 
