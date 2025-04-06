@@ -5,7 +5,6 @@ A web application built with Next.js that allows users to extract HTML content a
 ## Features
 
 - Fetch complete HTML content from any URL
-- Extract specific elements using CSS selectors
 - User-friendly interface for configuring scraping tasks
 - API endpoint for programmatic access
 
